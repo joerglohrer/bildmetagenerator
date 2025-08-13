@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TULLU(+B) Bildlizenzhinweis – Kopierfelder (Text · Figcaption · JSON-LD)</title>
+<title>TULLU(+B) Bildlizenzhinweis – Kopierfelder (Text · Figcaption · JSON-LD) + URL-Prefill</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
   body{background:#fff;color:#333}
@@ -159,6 +159,18 @@ const LICENSES = [
   {id:"CUSTOM", label:"Benutzerdefiniert (eigene Lizenz-URL später ergänzen)", url:()=>null, hasVersion:true}
 ];
 
+/* ===== Aliase für Lizenz-Kurzschreibweisen (case/Trennzeichen tolerant) ===== */
+const LIC_ALIASES = {
+  "cc0":"CC0","pdm":"PDM",
+  "by":"BY","cc-by":"BY",
+  "by-sa":"BY-SA","cc-by-sa":"BY-SA","by_sa":"BY-SA",
+  "by-nc":"BY-NC","cc-by-nc":"BY-NC","by_nc":"BY-NC",
+  "by-nc-sa":"BY-NC-SA","cc-by-nc-sa":"BY-NC-SA","by_nc_sa":"BY-NC-SA",
+  "by-nd":"BY-ND","cc-by-nd":"BY-ND","by_nd":"BY-ND",
+  "by-nc-nd":"BY-NC-ND","cc-by-nc-nd":"BY-NC-ND","by_nc_nd":"BY-NC-ND",
+  "custom":"CUSTOM"
+};
+
 /* ===== DOM helpers ===== */
 const $  = sel => document.querySelector(sel);
 
@@ -194,7 +206,7 @@ function ensureAtLeastOneAuthor(){ if(!authorsWrap.querySelector(".author-row"))
 $("#addAuthorBtn").addEventListener("click", ()=>addAuthor());
 ensureAtLeastOneAuthor();
 
-/* ===== Event wiring ===== */
+/* ===== Events ===== */
 $("#isAdapted").addEventListener("change", e=>{
   $("#adaptationNote").disabled = !e.target.checked;
   if(!e.target.checked) $("#adaptationNote").value="";
@@ -314,23 +326,21 @@ function formatAttribution(d){
   const figcaptionHTML = `<figcaption>${figcaptionInner}</figcaption>`;
 
   // JSON-LD
-  const jsonLD = (()=>{
-    const creators = d.creators.map(c=>({ "@type":"Person", "name":c.name, ...(c.url?{url:c.url}:{}) }));
-    const licURL = licDef.id==="CUSTOM" ? "" : (licDef.url(d.licenseVersion)||"");
-    const obj = {
-      "@context":"https://schema.org",
-      "@type":"ImageObject",
-      "name": d.title || "",
-      ...(d.workUrl?{"contentUrl": d.workUrl}:{ }),
-      ...(d.source?{"isBasedOn": d.source}:{ }),
-      ...(d.year?{"dateCreated": d.year}:{ }),
-      "creator": creators,
-      ...(licURL?{"license": licURL}:{ })
-    };
-    if(d.isAdapted) obj.creditText = `Adaptation: ${d.adaptationNote||"present"}`;
-    if(d.extra) obj.comment = d.extra;
-    return JSON.stringify(obj, null, 2);
-  })();
+  const creators = d.creators.map(c=>({ "@type":"Person", "name":c.name, ...(c.url?{url:c.url}:{}) }));
+  const licURL = licDef.id==="CUSTOM" ? "" : (licDef.url(d.licenseVersion)||"");
+  const jsonObj = {
+    "@context":"https://schema.org",
+    "@type":"ImageObject",
+    "name": d.title || "",
+    ...(d.workUrl?{"contentUrl": d.workUrl}:{ }),
+    ...(d.source?{"isBasedOn": d.source}:{ }),
+    ...(d.year?{"dateCreated": d.year}:{ }),
+    "creator": creators,
+    ...(licURL?{"license": licURL}:{ })
+  };
+  if(d.isAdapted) jsonObj.creditText = `Adaptation: ${d.adaptationNote||"present"}`;
+  if(d.extra) jsonObj.comment = d.extra;
+  const jsonLD = JSON.stringify(jsonObj, null, 2);
 
   // TULLU checks
   const check = {
@@ -365,24 +375,72 @@ function buildAll(){
   const d = readForm();
   const { textOut, figcaptionHTML, figcaptionInner, jsonLD, check } = formatAttribution(d);
 
-  // Klartext
   $("#outText").value = textOut;
-
-  // Figcaption (Kopierfeld + Preview)
   $("#outFigcaption").value = figcaptionHTML;
   $("#figcaption-output").innerHTML = figcaptionInner;
   if(d.workUrl){ $("#previewImage").src=d.workUrl; $("#previewImage").style.display="block"; }
   else { $("#previewImage").style.display="none"; }
-
-  // JSON-LD
   $("#outJsonLd").value = jsonLD;
 
   renderBadges(check);
 }
 
-/* ===== Initial ===== */
+/* ===== URL-Prefill ===== */
+function applyQueryParams(){
+  const p = new URLSearchParams(location.search);
+  if(![...p.keys()].length) return;
+
+  const setVal = (id, val) => { if(val!==null && val!==undefined && val!=="") { $("#"+id).value = val; } };
+
+  // Titel
+  setVal("title", p.get("title") || p.get("t"));
+
+  // Autoren: mehrere &author=Name|URL oder ein &authors=Name|URL;Name2
+  let authorParams = p.getAll("author");
+  if(authorParams.length===0){
+    const agg = p.get("authors");
+    if(agg) authorParams = agg.split(";").map(s=>s.trim()).filter(Boolean);
+  }
+  if(authorParams.length){
+    clearAuthors();
+    authorParams.forEach(a=>{
+      const [name,url] = a.split("|");
+      addAuthor(name?.trim()||"", (url||"").trim());
+    });
+  }
+
+  // Lizenz + Version
+  let lic = p.get("license") || p.get("lic") || p.get("l");
+  if(lic){
+    lic = lic.toLowerCase().replace(/\s+/g,"").replace(/_/g,"-");
+    const norm = LIC_ALIASES[lic] || lic.toUpperCase();
+    if(LICENSES.some(L=>L.id===norm)) { licenseSel.value = norm; }
+  }
+  const ver = p.get("licenseVersion") || p.get("lv") || p.get("v");
+  if(ver!==null && ver!==undefined) setVal("licenseVersion", ver);
+
+  // Links/Quelle/Jahr/Sprache/Notizen
+  setVal("workUrl", p.get("work") || p.get("workUrl") || p.get("url") || p.get("link"));
+  setVal("source",  p.get("source") || p.get("sourceUrl") || p.get("src"));
+  setVal("year",    p.get("year") || p.get("y"));
+  const lang = (p.get("lang")||"").toLowerCase();
+  if(lang==="en"||lang==="de") setVal("lang", lang);
+  setVal("extra",   p.get("extra") || p.get("note"));
+
+  // Bearbeitung
+  const adapted = p.get("adapted") || p.get("b") || p.get("isAdapted");
+  if(adapted){
+    const yes = /^(1|true|yes|ja|y)$/i.test(adapted);
+    $("#isAdapted").checked = yes;
+    $("#adaptationNote").disabled = !yes;
+  }
+  setVal("adaptationNote", p.get("changes") || p.get("adaptation") || p.get("adaptationNote"));
+}
+
+/* ===== Init ===== */
 function init(){ 
   document.getElementById("license").dispatchEvent(new Event("change"));
+  applyQueryParams();
   buildAll();
 }
 document.addEventListener("DOMContentLoaded", init);
