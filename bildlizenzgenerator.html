@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TULLU + B Bildlizenzhinweis-Generator (OER)</title>
+<style>
+  :root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;--warn:#f59e0b;--err:#ef4444;}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#0b1220,#0d1321 30%,#0d1426)}
+  header{padding:24px 16px;text-align:center;color:var(--text)}
+  header h1{margin:.2rem 0;font-size:1.35rem}
+  header p{margin:.2rem 0;color:var(--muted)}
+  main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:980px){main{grid-template-columns:1.1fr .9fr}}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:16px;color:var(--text);box-shadow:0 10px 25px rgba(0,0,0,.25)}
+  .row{display:grid;gap:10px;margin-bottom:12px}
+  .row.cols-2{grid-template-columns:1fr 1fr}
+  label{font-size:.9rem;color:#cbd5e1}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #374151;border-radius:10px;background:#0b1020;color:var(--text)}
+  input::placeholder,textarea::placeholder{color:#6b7280}
+  textarea{min-height:72px;resize:vertical}
+  small{color:var(--muted)}
+  .muted{color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:10px 14px;border-radius:12px;border:1px solid #1f2937;background:#121a2e;color:var(--text);cursor:pointer}
+  .btn:hover{background:#15203a}
+  .btn.primary{background:#163820;border-color:#215a30;color:#d1fae5}
+  .btn.primary:hover{background:#184224}
+  .stack{display:flex;flex-wrap:wrap;gap:8px}
+  .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;border:1px solid #273142;color:#cbd5e1;font-size:.75rem}
+  .ok{border-color:#1f5130;color:#bbf7d0}
+  .warn{border-color:#5a420b;color:#fde68a}
+  .err{border-color:#5c1b1b;color:#fecaca}
+  .output{background:#0b1020;border:1px dashed #374151;border-radius:12px;padding:12px}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono",Consolas,monospace}
+  .format-tabs{display:flex;gap:8px;margin-bottom:8px}
+  .format-tabs button{padding:6px 10px;border-radius:8px;border:1px solid #273142;background:#0b1020;color:#cbd5e1;cursor:pointer}
+  .format-tabs button.active{border-color:#215a30;background:#163820;color:#d1fae5}
+  .help{font-size:.85rem;color:#9ca3af}
+  .footer{color:#94a3b8;font-size:.85rem}
+  a{color:#86efac}
+</style>
+</head>
+<body>
+<header>
+  <h1>TULLU + B – Bildlizenzhinweis-Generator (OER)</h1>
+  <p>Erstellt korrekte Attributionsangaben nach <strong>T</strong>itel · <strong>U</strong>rheber:in · <strong>L</strong>izenz · <strong>L</strong>ink · <strong>U</strong>rsprungsort + <strong>B</strong>earbeitung.</p>
+</header>
+
+<main>
+  <!-- Form -->
+  <section class="card" aria-labelledby="form-title">
+    <h2 id="form-title" style="margin-top:0;font-size:1.05rem">Eingaben</h2>
+
+    <div class="row">
+      <label for="title">Titel des Werks (T)</label>
+      <input id="title" placeholder="z. B. Sonnenuntergang über Berlin" />
+    </div>
+
+    <div class="row">
+      <label for="creators">Urheber:in / Autor:in (U)</label>
+      <input id="creators" placeholder="z. B. Maria Muster; Max Beispiel (Semikolon trennt mehrere)" />
+      <small class="muted">Mehrere Namen mit Semikolon <code>;</code> trennen. Optional: Organisation in Klammern.</small>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <label for="license">Lizenz (L)</label>
+        <select id="license"></select>
+      </div>
+      <div>
+        <label for="licenseVersion">Lizenz-Version</label>
+        <select id="licenseVersion">
+          <option value="4.0" selected>4.0</option>
+          <option value="3.0">3.0</option>
+          <option value="2.0">2.0</option>
+          <option value="1.0">1.0</option>
+          <option value="">(keine/CC0/PD)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <label for="workUrl">Direktlink zum Werk (L)</label>
+        <input id="workUrl" placeholder="https://… (Permalink zur Datei/Seite)" />
+      </div>
+      <div>
+        <label for="source">Ursprungsort / Plattform (U)</label>
+        <input id="source" placeholder="z. B. Wikimedia Commons, Unsplash, eigene Website" />
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <label for="year">Jahr (optional)</label>
+        <input id="year" placeholder="2024" inputmode="numeric" />
+      </div>
+      <div>
+        <label for="lang">Sprache der Ausgabe</label>
+        <select id="lang">
+          <option value="de" selected>Deutsch</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <label><input type="checkbox" id="isAdapted"> Bearbeitung/Anpassung vorhanden (+ B)</label>
+      <textarea id="adaptationNote" placeholder="z. B. Zuschnitt, Farbkorrektur; Text hinzugefügt" disabled></textarea>
+    </div>
+
+    <div class="row">
+      <label for="extra">Zusätzliche Hinweise (optional)</label>
+      <input id="extra" placeholder="z. B. Bildzuschnitt durch die Redaktion" />
+    </div>
+
+    <div class="stack">
+      <button class="btn primary" id="buildBtn">Lizenzhinweis erzeugen</button>
+      <button class="btn" id="resetBtn" type="button">Zurücksetzen</button>
+    </div>
+
+    <p class="help">Hinweis: Bei CC-BY/CC-BY-SA sind Urheber:in, Lizenzname und -link Pflicht. Bei Bearbeitungen immer kenntlich machen (B).</p>
+  </section>
+
+  <!-- Output -->
+  <section class="card" aria-labelledby="out-title">
+    <h2 id="out-title" style="margin-top:0;font-size:1.05rem">Ausgabe &amp; TULLU-Check</h2>
+
+    <div class="stack" id="tulluBadges" aria-live="polite"></div>
+
+    <div style="margin:10px 0 6px">
+      <div class="format-tabs">
+        <button data-format="text" class="active">Klartext</button>
+        <button data-format="html">HTML</button>
+        <button data-format="md">Markdown</button>
+      </div>
+      <div class="output">
+        <textarea id="result" readonly style="width:100%;min-height:160px;background:transparent;border:none;color:#e5e7eb"></textarea>
+      </div>
+    </div>
+
+    <div class="stack">
+      <button class="btn" id="copyBtn">In Zwischenablage kopieren</button>
+      <button class="btn" id="exampleBtn" title="Beispieldaten laden">Beispiel</button>
+    </div>
+
+    <div class="footer" style="margin-top:10px">
+      <p><strong>TULLU</strong> = <em>T</em>itel · <em>U</em>rheber:in · <em>L</em>izenz · <em>L</em>ink · <em>U</em>rsprungsort &nbsp; | &nbsp; <strong>+ B</strong> = Bearbeitungshinweis.</p>
+      <p>Lizenzkürzel und Links für CC-Lizenzen sind vorbelegt (CC0/PD, BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Für nicht-CC kannst du „Benutzerdefiniert“ wählen.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* --- Lizenzdatenbank (Kurzname → Basis-URL) --- */
+const LICENSES = [
+  {id:"CC0", label:"CC0 (Public Domain Waiver)", url:v=>`https://creativecommons.org/publicdomain/zero/1.0/`, hasVersion:false},
+  {id:"PDM", label:"Public Domain Mark (PDM)", url:v=>`https://creativecommons.org/publicdomain/mark/1.0/`, hasVersion:false},
+  {id:"BY", label:"CC BY", url:v=>`https://creativecommons.org/licenses/by/${v || "4.0"}/`},
+  {id:"BY-SA", label:"CC BY-SA", url:v=>`https://creativecommons.org/licenses/by-sa/${v || "4.0"}/`},
+  {id:"BY-NC", label:"CC BY-NC", url:v=>`https://creativecommons.org/licenses/by-nc/${v || "4.0"}/`},
+  {id:"BY-NC-SA", label:"CC BY-NC-SA", url:v=>`https://creativecommons.org/licenses/by-nc-sa/${v || "4.0"}/`},
+  {id:"BY-ND", label:"CC BY-ND", url:v=>`https://creativecommons.org/licenses/by-nd/${v || "4.0"}/`},
+  {id:"BY-NC-ND", label:"CC BY-NC-ND", url:v=>`https://creativecommons.org/licenses/by-nc-nd/${v || "4.0"}/`},
+  {id:"CUSTOM", label:"Benutzerdefiniert (eigene Lizenz-URL)", url:v=>null, custom:true}
+];
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* Init selects */
+const licenseSel = $("#license");
+LICENSES.forEach(l=>{
+  const o=document.createElement("option");
+  o.value=l.id; o.textContent=l.label; licenseSel.appendChild(o);
+});
+licenseSel.value="BY";
+
+/* UI events */
+$("#isAdapted").addEventListener("change", e=>{
+  $("#adaptationNote").disabled = !e.target.checked;
+  if(!e.target.checked) $("#adaptationNote").value="";
+});
+
+$("#resetBtn").addEventListener("click", ()=>{
+  $$("input, textarea").forEach(el=>{
+    if(el.type==="checkbox"){ el.checked=false; $("#adaptationNote").disabled=true; }
+    else el.value="";
+  });
+  $("#license").value="BY";
+  $("#licenseVersion").value="4.0";
+  $("#lang").value="de";
+  setResult("");
+  renderBadges({});
+});
+
+$("#exampleBtn").addEventListener("click", ()=>{
+  $("#title").value="Sonnenuntergang über Berlin";
+  $("#creators").value="Maria Muster; Max Beispiel (Beispiel-Institut)";
+  $("#license").value="BY-SA";
+  $("#licenseVersion").value="4.0";
+  $("#workUrl").value="https://commons.wikimedia.org/wiki/File:Berlin_Sunset.jpg";
+  $("#source").value="Wikimedia Commons";
+  $("#year").value="2025";
+  $("#isAdapted").checked=true;
+  $("#adaptationNote").disabled=false;
+  $("#adaptationNote").value="Zuschnitt; Farbkorrektur";
+  $("#extra").value="Bildgröße reduziert";
+  $("#lang").value="de";
+  buildOutput();
+});
+
+$(".format-tabs").addEventListener("click", (e)=>{
+  if(e.target.tagName!=="BUTTON") return;
+  $$(".format-tabs button").forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");
+  buildOutput();
+});
+
+$("#license").addEventListener("change", ()=>{
+  const def = LICENSES.find(l=>l.id===licenseSel.value);
+  const lv = $("#licenseVersion");
+  lv.disabled = def && def.hasVersion===false;
+  if(lv.disabled) lv.value="";
+});
+
+$("#buildBtn").addEventListener("click", buildOutput);
+
+$("#copyBtn").addEventListener("click", async ()=>{
+  const txt=$("#result").value;
+  try{
+    await navigator.clipboard.writeText(txt);
+    flash("#copyBtn","Kopiert!");
+  }catch(_){ flash("#copyBtn","Kopieren fehlgeschlagen",true); }
+});
+
+function flash(sel,msg,isErr=false){
+  const el=$(sel); const old=el.textContent;
+  el.textContent=msg; el.style.borderColor=isErr?"var(--err)":"var(--accent)";
+  setTimeout(()=>{ el.textContent=old; el.style.borderColor="#1f2937"; },1200);
+}
+
+/* Core builder */
+function buildOutput(){
+  const data = readForm();
+  const fmt = $(".format-tabs button.active").dataset.format;
+  const out = formatAttribution(data, fmt);
+  setResult(out.text);
+  renderBadges(out.check);
+}
+
+/* Read form values */
+function readForm(){
+  return {
+    title: $("#title").value.trim(),
+    creators: splitCreators($("#creators").value),
+    licenseId: $("#license").value,
+    licenseVersion: $("#licenseVersion").value,
+    workUrl: $("#workUrl").value.trim(),
+    source: $("#source").value.trim(),
+    year: $("#year").value.trim(),
+    isAdapted: $("#isAdapted").checked,
+    adaptationNote: $("#adaptationNote").value.trim(),
+    extra: $("#extra").value.trim(),
+    lang: $("#lang").value
+  };
+}
+
+function splitCreators(raw){
+  return raw.split(";")
+    .map(s=>s.trim()).filter(Boolean);
+}
+
+/* Attribution templates */
+function formatAttribution(d, format="text"){
+  const licDef = LICENSES.find(l=>l.id===d.licenseId) || LICENSES[0];
+  const licUrl = licDef.custom ? "" : (licDef.url(d.licenseVersion)||"");
+  const licLabel = (
+    d.licenseId==="CC0" ? "CC0 1.0" :
+    d.licenseId==="PDM" ? "Public Domain Mark 1.0" :
+    licDef.custom ? "Benutzerdefinierte Lizenz" :
+    `${licDef.label} ${d.licenseVersion||""}`.trim()
+  );
+
+  const isDE = d.lang==="de";
+
+  const title = d.title || (isDE?"(ohne Titel)":"(untitled)");
+  const creators = d.creators.length ? d.creators.join(", ") : (isDE?"(Urheber:in unbekannt)":"(creator unknown)");
+
+  const parts = [];
+  // „Titel“ von Urheber:in, Jahr (optional)
+  parts.push(`„${title}“`);
+  parts.push(isDE ? `von ${creators}` : `by ${creators}`);
+  if(d.year) parts.push(d.year);
+
+  // Lizenz
+  if(licDef.custom){
+    parts.push(isDE ? `Lizenz: ${licLabel}` : `License: ${licLabel}`);
+  } else {
+    // linked label where possible later by format
+    parts.push(isDE ? `lizenziert unter ${licLabel}` : `licensed under ${licLabel}`);
+  }
+
+  // Quelle/Ursprungsort + Link
+  if(d.source) parts.push(isDE ? `Quelle: ${d.source}` : `Source: ${d.source}`);
+  if(d.workUrl) parts.push(isDE ? `Link: ${d.workUrl}` : `Link: ${d.workUrl}`);
+
+  // Bearbeitung (+B)
+  if(d.isAdapted){
+    const note = d.adaptationNote || (isDE?"Bearbeitung vorhanden":"Adaptation present");
+    parts.push(isDE ? `Änderungen: ${note}` : `Changes: ${note}`);
+  }
+
+  if(d.extra) parts.push(d.extra);
+
+  // Build strings for formats
+  let textOut, htmlOut, mdOut;
+
+  // TEXT
+  textOut = parts.join(" · ");
+
+  // HTML (with links)
+  const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const titleHTML = `„${esc(title)}”`;
+  const creatorsHTML = esc(creators);
+  const yearHTML = d.year?` · ${esc(d.year)}`:"";
+  const licHTML = licDef.custom
+    ? (isDE?`Lizenz: ${esc(licLabel)}`:`License: ${esc(licLabel)}`)
+    : (isDE?`lizenziert unter <a href="${licUrl}" target="_blank" rel="license noopener">${esc(licLabel)}</a>`
+           :`licensed under <a href="${licUrl}" target="_blank" rel="license noopener">${esc(licLabel)}</a>`);
+  const sourceHTML = d.source? (isDE?` · Quelle: ${esc(d.source)}`:` · Source: ${esc(d.source)}`) : "";
+  const workHTML = d.workUrl?` · <a href="${d.workUrl}" target="_blank" rel="noopener">Link</a>`:"";
+  const changesHTML = d.isAdapted ? (isDE?` · Änderungen: ${esc(d.adaptationNote||"Bearbeitung vorhanden")}`
+                                  : ` · Changes: ${esc(d.adaptationNote||"Adaptation present")}`) : "";
+  const extraHTML = d.extra?` · ${esc(d.extra)}`:"";
+  htmlOut = `<span property="cc:attributionName">${titleHTML}</span> ${isDE?"von":"by"} <span>${creatorsHTML}</span>${yearHTML} · ${licHTML}${sourceHTML}${workHTML}${changesHTML}${extraHTML}`;
+
+  // MARKDOWN
+  const licMD = licDef.custom ? (isDE?`Lizenz: ${licLabel}`:`License: ${licLabel}`)
+                              : `[${licLabel}](${licUrl})`;
+  const workMD = d.workUrl?` · [Link](${d.workUrl})`:"";
+  const sourceMD = d.source? (isDE?` · Quelle: ${d.source}`:` · Source: ${d.source}`) : "";
+  const changesMD = d.isAdapted ? (isDE?` · Änderungen: ${d.adaptationNote||"Bearbeitung vorhanden"}`
+                                      : ` · Changes: ${d.adaptationNote||"Adaptation present"}`) : "";
+  const extraMD = d.extra?` · ${d.extra}`:"";
+  mdOut = `„${title}“ ${isDE?"von":"by"} ${creators}${d.year?` · ${d.year}`:""} · ${licMD}${sourceMD}${workMD}${changesMD}${extraMD}`;
+
+  // Choose current format
+  const format = $(".format-tabs button.active").dataset.format;
+  const chosen = format==="html" ? htmlOut : format==="md" ? mdOut : textOut;
+
+  // TULLU check badges
+  const check = {
+    T: !!d.title,
+    U: d.creators.length>0,
+    L: !!licLabel,
+    L2: !!licUrl || licDef.custom, // Link zur Lizenz
+    U2: !!d.workUrl,               // Link zum Werk
+    U3: !!d.source,                // Ursprungsort benannt
+    B:  d.isAdapted ? !!(d.adaptationNote || true) : true
+  };
+
+  return { text: chosen, check };
+}
+
+function setResult(s){ $("#result").value=s; }
+
+function renderBadges(check){
+  const el=$("#tulluBadges");
+  el.innerHTML="";
+  const items = [
+    {k:"T", label:"Titel"},
+    {k:"U", label:"Urheber:in"},
+    {k:"L", label:"Lizenz"},
+    {k:"L2",label:"Lizenz-Link"},
+    {k:"U2",label:"Werk-Link"},
+    {k:"U3",label:"Ursprungsort"},
+    {k:"B", label:"+ B (Bearbeitung)"}
+  ];
+  items.forEach(it=>{
+    const ok = check[it.k]!==false && check[it.k]!==undefined ? check[it.k] : false;
+    const span=document.createElement("span");
+    span.className = "badge " + (ok?"ok":"warn");
+    span.textContent = it.label + (ok ? " ✓" : " •");
+    el.appendChild(span);
+  });
+}
+
+// initial render
+renderBadges({});
+function onTabSwitch(){ /* placeholder */ }
+</script>
+</body>
+</html>
