@@ -1,258 +1,203 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TULLU + B Bildlizenzhinweis-Generator (OER)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TULLU(+B) Bildlizenzhinweis – Kopierfelder (Text · Figcaption · JSON-LD)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-  :root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;--warn:#f59e0b;--err:#ef4444;}
-  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-  body{margin:0;background:linear-gradient(180deg,#0b1220,#0d1321 30%,#0d1426)}
-  header{padding:24px 16px;text-align:center;color:var(--text)}
-  header h1{margin:.2rem 0;font-size:1.35rem}
-  header p{margin:.2rem 0;color:var(--muted)}
-  main{max-width:1000px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:1fr}
-  @media(min-width:980px){main{grid-template-columns:1.1fr .9fr}}
-  .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:16px;color:var(--text);box-shadow:0 10px 25px rgba(0,0,0,.25)}
-  .row{display:grid;gap:10px;margin-bottom:12px}
-  .row.cols-2{grid-template-columns:1fr 1fr}
-  label{font-size:.9rem;color:#cbd5e1}
-  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #374151;border-radius:10px;background:#0b1020;color:var(--text)}
-  input::placeholder,textarea::placeholder{color:#6b7280}
-  textarea{min-height:72px;resize:vertical}
-  small{color:var(--muted)}
-  .muted{color:var(--muted)}
-  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:10px 14px;border-radius:12px;border:1px solid #1f2937;background:#121a2e;color:var(--text);cursor:pointer}
-  .btn:hover{background:#15203a}
-  .btn.primary{background:#163820;border-color:#215a30;color:#d1fae5}
-  .btn.primary:hover{background:#184224}
-  .stack{display:flex;flex-wrap:wrap;gap:8px}
-  .badge{display:inline-block;padding:.2rem .55rem;border-radius:999px;border:1px solid #273142;color:#cbd5e1;font-size:.75rem}
-  .ok{border-color:#1f5130;color:#bbf7d0}
-  .warn{border-color:#5a420b;color:#fde68a}
-  .output{background:#0b1020;border:1px dashed #374151;border-radius:12px;padding:12px}
-  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono",Consolas,monospace}
-  .format-tabs{display:flex;gap:8px;margin-bottom:8px}
-  .format-tabs button{padding:6px 10px;border-radius:8px;border:1px solid #273142;background:#0b1020;color:#cbd5e1;cursor:pointer}
-  .format-tabs button.active{border-color:#215a30;background:#163820;color:#d1fae5}
-  .footer{color:#94a3b8;font-size:.85rem}
-  a{color:#86efac}
-  .authors{display:grid;gap:8px}
-  .author-row{display:grid;grid-template-columns:1.2fr 1fr auto;gap:8px}
-  .author-row button{min-width:40px}
+  body{background:#fff;color:#333}
+  .container-narrow{max-width:980px}
+  .card{border-radius:12px}
+  .highlight-letter{font-weight:700;color:#002366}
+  .author-row{display:grid;grid-template-columns:1.4fr 1fr auto;gap:.5rem}
+  .output-area textarea{min-height:120px}
+  .tullu-badges .badge{border-radius:999px}
+  .figcaption-output a{color:#203A8F;text-decoration:none}
+  .figcaption-output a:hover{color:#FFA500;text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 </style>
 </head>
 <body>
-<header>
-  <h1>TULLU + B – Bildlizenzhinweis-Generator (OER)</h1>
-  <p>T (Titel) · U (Urheber:in) · L (Lizenz) · L (Link) · U (Ursprungsort) + B (Bearbeitung)</p>
-</header>
+<div class="container container-narrow my-4">
+  <h2 class="text-center mb-1">OER Bildlizenzhinweis (TULLU + B)</h2>
+  <p class="text-center"><a href="https://www.orca.nrw/oer/oer-nutzen/tulluba-regel/" target="_blank">TULLUBA-Regel</a></p>
 
-<main>
-  <!-- Form -->
-  <section class="card" aria-labelledby="form-title">
-    <h2 id="form-title" style="margin-top:0;font-size:1.05rem">Eingaben</h2>
+  <!-- Eingaben -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Eingaben</h5>
 
-    <div class="row">
-      <label for="title">Titel des Werks (T)</label>
-      <input id="title" placeholder="z. B. Sonnenuntergang über Berlin" />
-    </div>
+      <div class="mb-3">
+        <label class="form-label" for="title"><span class="highlight-letter">T</span>itel</label>
+        <input id="title" class="form-control" placeholder="z. B. Sonnenuntergang über Berlin">
+      </div>
 
-    <div class="row">
-      <label>Urheber:in / Autor:in (U) — beliebig viele, optional mit URL</label>
-      <div class="authors" id="authors"></div>
-      <div class="stack">
-        <button class="btn" id="addAuthorBtn" type="button">+ Autor:in hinzufügen</button>
-        <small class="muted">Leere Zeilen werden ignoriert. Mit URL werden Namen verlinkt.</small>
+      <div class="mb-2">
+        <label class="form-label"><span class="highlight-letter">U</span>rheber:in / Autor:in — mehrere möglich (optional mit URL)</label>
+        <div id="authors" class="vstack gap-2"></div>
+        <button id="addAuthorBtn" type="button" class="btn btn-outline-secondary btn-sm mt-2">+ Autor:in hinzufügen</button>
+        <div class="form-text">Leere Zeilen werden ignoriert. Mit URL werden Namen verlinkt.</div>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label"><span class="highlight-letter">L</span>izenz</label>
+          <select id="license" class="form-select"></select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Lizenz-Version</label>
+          <select id="licenseVersion" class="form-select">
+            <option value="4.0" selected>4.0</option>
+            <option value="3.0">3.0</option>
+            <option value="2.0">2.0</option>
+            <option value="1.0">1.0</option>
+            <option value="">(keine/CC0/PDM)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-2 mt-1">
+        <div class="col-md-6">
+          <label class="form-label"><span class="highlight-letter">L</span>ink zum Werk (Permalink)</label>
+          <input id="workUrl" class="form-control" placeholder="https://…">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><span class="highlight-letter">U</span>rsprungsort / Plattform</label>
+          <input id="source" class="form-control" placeholder="Wikimedia Commons, eigene Website …">
+        </div>
+      </div>
+
+      <div class="row g-2 mt-1">
+        <div class="col-md-3">
+          <label class="form-label">Jahr (optional)</label>
+          <input id="year" class="form-control" placeholder="2025" inputmode="numeric">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Sprache</label>
+          <select id="lang" class="form-select">
+            <option value="de" selected>Deutsch</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Zusätzliche Hinweise (optional)</label>
+          <input id="extra" class="form-control" placeholder="z. B. Bildzuschnitt durch die Redaktion">
+        </div>
+      </div>
+
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="isAdapted">
+        <label class="form-check-label" for="isAdapted"><span class="highlight-letter">B</span>earbeitung/Anpassung vorhanden</label>
+      </div>
+      <textarea id="adaptationNote" class="form-control mt-2" placeholder="z. B. Zuschnitt, Farbkorrektur; Text hinzugefügt" disabled></textarea>
+
+      <div class="mt-3 d-flex flex-wrap gap-2">
+        <button id="buildBtn" type="button" class="btn btn-primary">Lizenzhinweis erzeugen</button>
+        <button id="exampleBtn" type="button" class="btn btn-outline-secondary">Beispiel laden</button>
+        <button id="resetBtn" type="button" class="btn btn-outline-secondary">Zurücksetzen</button>
+      </div>
+
+      <div class="form-text mt-2">
+        Pflicht bei CC-BY/CC-BY-SA: Urheber:in, Lizenzname und -link. Bei Bearbeitungen immer kenntlich machen (+B).
       </div>
     </div>
+  </div>
 
-    <div class="row cols-2">
-      <div>
-        <label for="license">Lizenz (L)</label>
-        <select id="license"></select>
-      </div>
-      <div>
-        <label for="licenseVersion">Lizenz-Version</label>
-        <select id="licenseVersion">
-          <option value="4.0" selected>4.0</option>
-          <option value="3.0">3.0</option>
-          <option value="2.0">2.0</option>
-          <option value="1.0">1.0</option>
-          <option value="">(keine/CC0/PD)</option>
-        </select>
-      </div>
+  <!-- TULLU-Badges -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-3">TULLU-Check</h5>
+      <div class="tullu-badges" id="tulluBadges" aria-live="polite"></div>
     </div>
+  </div>
 
-    <div class="row cols-2">
-      <div>
-        <label for="workUrl">Direktlink zum Werk (L)</label>
-        <input id="workUrl" placeholder="https://… (Permalink zur Datei/Seite)" />
-      </div>
-      <div>
-        <label for="source">Ursprungsort / Plattform (U)</label>
-        <input id="source" placeholder="z. B. Wikimedia Commons, Unsplash, eigene Website" />
+  <!-- Kopierfelder -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-3">1) Klartext (für Impressum/Bildnachweis)</h5>
+      <div class="output-area">
+        <textarea id="outText" class="form-control" readonly></textarea>
       </div>
     </div>
+  </div>
 
-    <div class="row cols-2">
-      <div>
-        <label for="year">Jahr (optional)</label>
-        <input id="year" placeholder="2025" inputmode="numeric" />
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-2">2) HTML-Figcaption (kopieren) & Vorschau</h5>
+      <div class="output-area mb-2">
+        <textarea id="outFigcaption" class="form-control" readonly></textarea>
       </div>
-      <div>
-        <label for="lang">Sprache der Ausgabe</label>
-        <select id="lang">
-          <option value="de" selected>Deutsch</option>
-          <option value="en">English</option>
-        </select>
-      </div>
+      <figure class="text-center border rounded p-3">
+        <img id="previewImage" src="#" alt="Vorschau-Bild" style="display:none;max-width:100%;margin-bottom:10px;">
+        <figcaption id="figcaption-output" class="figcaption-output"></figcaption>
+      </figure>
     </div>
+  </div>
 
-    <div class="row">
-      <label><input type="checkbox" id="isAdapted"> Bearbeitung/Anpassung vorhanden (+ B)</label>
-      <textarea id="adaptationNote" placeholder="z. B. Zuschnitt, Farbkorrektur; Text hinzugefügt" disabled></textarea>
-    </div>
-
-    <div class="row">
-      <label for="extra">Zusätzliche Hinweise (optional)</label>
-      <input id="extra" placeholder="z. B. Bildzuschnitt durch die Redaktion" />
-    </div>
-
-    <div class="stack">
-      <button class="btn primary" id="buildBtn" type="button">Lizenzhinweis erzeugen</button>
-      <button class="btn" id="resetBtn" type="button">Zurücksetzen</button>
-    </div>
-
-    <p class="muted" style="margin-top:8px">Bei CC-BY/CC-BY-SA sind Urheber:in, Lizenzname und -link Pflicht. Bei Bearbeitungen immer kenntlich machen (B).</p>
-  </section>
-
-  <!-- Output -->
-  <section class="card" aria-labelledby="out-title">
-    <h2 id="out-title" style="margin-top:0;font-size:1.05rem">Ausgabe &amp; TULLU-Check</h2>
-
-    <div class="stack" id="tulluBadges" aria-live="polite"></div>
-
-    <div style="margin:10px 0 6px">
-      <div class="format-tabs">
-        <button data-format="text" class="active" type="button">Klartext</button>
-        <button data-format="html" type="button">HTML</button>
-        <button data-format="md" type="button">Markdown</button>
-      </div>
-      <div class="output">
-        <textarea id="result" readonly style="width:100%;min-height:160px;background:transparent;border:none;color:#e5e7eb"></textarea>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">3) JSON-LD (kopieren)</h5>
+      <div class="output-area">
+        <textarea id="outJsonLd" class="form-control" readonly></textarea>
       </div>
     </div>
-
-    <div class="stack">
-      <button class="btn" id="copyBtn" type="button">In Zwischenablage kopieren</button>
-      <button class="btn" id="exampleBtn" type="button" title="Beispieldaten laden">Beispiel</button>
-    </div>
-
-    <div class="footer" style="margin-top:10px">
-      <p><strong>TULLU</strong> = <em>T</em>itel · <em>U</em>rheber:in · <em>L</em>izenz · <em>L</em>ink · <em>U</em>rsprungsort &nbsp; | &nbsp; <strong>+ B</strong> = Bearbeitungshinweis.</p>
-      <p>CC-Lizenzen inkl. Links: CC0/PDM (ohne Version), BY / BY-SA / BY-NC / BY-NC-SA / BY-ND / BY-NC-ND.</p>
-    </div>
-  </section>
-</main>
+  </div>
+</div>
 
 <script>
-/* --- Lizenzdatenbank (Kurzname → Basis-URL) --- */
+/* ===== Lizenzdatenbank ===== */
 const LICENSES = [
   {id:"CC0", label:"CC0 (Public Domain Waiver)", url:()=>`https://creativecommons.org/publicdomain/zero/1.0/`, hasVersion:false},
   {id:"PDM", label:"Public Domain Mark (PDM)", url:()=>`https://creativecommons.org/publicdomain/mark/1.0/`, hasVersion:false},
-  {id:"BY", label:"CC BY", url:v=>`https://creativecommons.org/licenses/by/${v || "4.0"}/`, hasVersion:true},
-  {id:"BY-SA", label:"CC BY-SA", url:v=>`https://creativecommons.org/licenses/by-sa/${v || "4.0"}/`, hasVersion:true},
-  {id:"BY-NC", label:"CC BY-NC", url:v=>`https://creativecommons.org/licenses/by-nc/${v || "4.0"}/`, hasVersion:true},
-  {id:"BY-NC-SA", label:"CC BY-NC-SA", url:v=>`https://creativecommons.org/licenses/by-nc-sa/${v || "4.0"}/`, hasVersion:true},
-  {id:"BY-ND", label:"CC BY-ND", url:v=>`https://creativecommons.org/licenses/by-nd/${v || "4.0"}/`, hasVersion:true},
-  {id:"BY-NC-ND", label:"CC BY-NC-ND", url:v=>`https://creativecommons.org/licenses/by-nc-nd/${v || "4.0"}/`, hasVersion:true},
-  {id:"CUSTOM", label:"Benutzerdefiniert (eigene Lizenz-URL in den Hinweis schreiben)", url:()=>null, hasVersion:true}
+  {id:"BY", label:"CC BY", url:v=>`https://creativecommons.org/licenses/by/${v||"4.0"}/`, hasVersion:true},
+  {id:"BY-SA", label:"CC BY-SA", url:v=>`https://creativecommons.org/licenses/by-sa/${v||"4.0"}/`, hasVersion:true},
+  {id:"BY-NC", label:"CC BY-NC", url:v=>`https://creativecommons.org/licenses/by-nc/${v||"4.0"}/`, hasVersion:true},
+  {id:"BY-NC-SA", label:"CC BY-NC-SA", url:v=>`https://creativecommons.org/licenses/by-nc-sa/${v||"4.0"}/`, hasVersion:true},
+  {id:"BY-ND", label:"CC BY-ND", url:v=>`https://creativecommons.org/licenses/by-nd/${v||"4.0"}/`, hasVersion:true},
+  {id:"BY-NC-ND", label:"CC BY-NC-ND", url:v=>`https://creativecommons.org/licenses/by-nc-nd/${v||"4.0"}/`, hasVersion:true},
+  {id:"CUSTOM", label:"Benutzerdefiniert (eigene Lizenz-URL später ergänzen)", url:()=>null, hasVersion:true}
 ];
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+/* ===== DOM helpers ===== */
+const $  = sel => document.querySelector(sel);
 
-/* Populate Lizenz-Select */
+/* ===== Populate Lizenz-Select ===== */
 const licenseSel = $("#license");
-LICENSES.forEach(l=>{
-  const o=document.createElement("option");
-  o.value=l.id; o.textContent=l.label; licenseSel.appendChild(o);
-});
+LICENSES.forEach(l=>{ const o=document.createElement("option"); o.value=l.id; o.textContent=l.label; licenseSel.appendChild(o); });
 licenseSel.value="BY";
 
-/* Autoren-UI */
+/* ===== Autoren UI ===== */
 const authorsWrap = $("#authors");
 function addAuthor(name="", url=""){
   const row = document.createElement("div");
   row.className="author-row";
   row.innerHTML = `
-    <input placeholder="Name, z. B. Maria Muster" value="${escapeAttr(name)}" />
-    <input placeholder="https://autor.in/ (optional)" value="${escapeAttr(url)}" />
-    <button class="btn" type="button" title="Entfernen">✕</button>
+    <input class="form-control" placeholder="Name (z. B. Maria Muster)" value="${escapeAttr(name)}">
+    <input class="form-control" placeholder="https://autor.in/ (optional)" value="${escapeAttr(url)}">
+    <button type="button" class="btn btn-outline-danger">✕</button>
   `;
   const [nameInput, urlInput, delBtn] = row.children;
-  delBtn.addEventListener("click", ()=>{ row.remove(); });
+  delBtn.addEventListener("click", ()=>row.remove());
   authorsWrap.appendChild(row);
 }
 function getAuthors(){
   return Array.from(authorsWrap.querySelectorAll(".author-row")).map(row=>{
-    const [nameInput, urlInput] = row.children;
-    const name = (nameInput.value||"").trim();
-    const url  = (urlInput.value||"").trim();
-    return name ? {name, url} : null;
+    const [nameEl,urlEl] = row.children;
+    const name=(nameEl.value||"").trim();
+    const url=(urlEl.value||"").trim();
+    return name ? { name, url } : null;
   }).filter(Boolean);
 }
 function clearAuthors(){ authorsWrap.innerHTML=""; }
-function ensureAtLeastOneAuthor(){
-  if(!authorsWrap.querySelector(".author-row")) addAuthor();
-}
+function ensureAtLeastOneAuthor(){ if(!authorsWrap.querySelector(".author-row")) addAuthor(); }
 $("#addAuthorBtn").addEventListener("click", ()=>addAuthor());
 ensureAtLeastOneAuthor();
 
-/* UI events */
+/* ===== Event wiring ===== */
 $("#isAdapted").addEventListener("change", e=>{
   $("#adaptationNote").disabled = !e.target.checked;
   if(!e.target.checked) $("#adaptationNote").value="";
-});
-
-$("#resetBtn").addEventListener("click", ()=>{
-  $$("input, textarea").forEach(el=>{
-    if(el.closest(".author-row")) return; // Autoren separat
-    if(el.type==="checkbox"){ el.checked=false; $("#adaptationNote").disabled=true; }
-    else el.value="";
-  });
-  clearAuthors(); ensureAtLeastOneAuthor();
-  $("#license").value="BY";
-  $("#licenseVersion").value="4.0";
-  $("#lang").value="de";
-  setResult("");
-  renderBadges({});
-});
-
-$("#exampleBtn").addEventListener("click", ()=>{
-  $("#title").value="Sonnenuntergang über Berlin";
-  clearAuthors();
-  addAuthor("Maria Muster","https://beispiel.org/maria");
-  addAuthor("Max Beispiel (Beispiel-Institut)","");
-  $("#license").value="BY-SA";
-  $("#licenseVersion").value="4.0";
-  $("#workUrl").value="https://commons.wikimedia.org/wiki/File:Berlin_Sunset.jpg";
-  $("#source").value="Wikimedia Commons";
-  $("#year").value="2025";
-  $("#isAdapted").checked=true;
-  $("#adaptationNote").disabled=false;
-  $("#adaptationNote").value="Zuschnitt; Farbkorrektur";
-  $("#extra").value="Bildgröße reduziert";
-  $("#lang").value="de";
-  buildOutput();
-});
-
-$(".format-tabs").addEventListener("click", (e)=>{
-  if(e.target.tagName!=="BUTTON") return;
-  $$(".format-tabs button").forEach(b=>b.classList.remove("active"));
-  e.target.classList.add("active");
-  buildOutput();
 });
 
 $("#license").addEventListener("change", ()=>{
@@ -262,35 +207,42 @@ $("#license").addEventListener("change", ()=>{
   if(lv.disabled) lv.value="";
 });
 
-$("#buildBtn").addEventListener("click", buildOutput);
-
-$("#copyBtn").addEventListener("click", async ()=>{
-  const txt=$("#result").value;
-  try{
-    await navigator.clipboard.writeText(txt);
-    flash("#copyBtn","Kopiert!");
-  }catch(_){ flash("#copyBtn","Kopieren fehlgeschlagen",true); }
+$("#buildBtn").addEventListener("click", buildAll);
+$("#exampleBtn").addEventListener("click", ()=>{
+  $("#title").value="Sonnenuntergang über Berlin";
+  clearAuthors();
+  addAuthor("Maria Muster","https://beispiel.org/maria");
+  addAuthor("Max Beispiel (Beispiel-Institut)","");
+  $("#license").value="BY-SA";
+  $("#licenseVersion").value="4.0";
+  $("#workUrl").value="https://upload.wikimedia.org/wikipedia/commons/2/20/Sunset_example.jpg";
+  $("#source").value="Wikimedia Commons";
+  $("#year").value="2025";
+  $("#isAdapted").checked=true;
+  $("#adaptationNote").disabled=false;
+  $("#adaptationNote").value="Zuschnitt; Farbkorrektur";
+  $("#extra").value="Bildgröße reduziert";
+  $("#lang").value="de";
+  buildAll();
+});
+$("#resetBtn").addEventListener("click", ()=>{
+  document.querySelectorAll("input, textarea").forEach(el=>{
+    if(el.closest(".author-row")) return;
+    if(el.type==="checkbox"){ el.checked=false; $("#adaptationNote").disabled=true; }
+    else el.value="";
+  });
+  clearAuthors(); ensureAtLeastOneAuthor();
+  $("#license").value="BY"; $("#licenseVersion").value="4.0"; $("#lang").value="de";
+  $("#outText").value=""; $("#outFigcaption").value=""; $("#outJsonLd").value="";
+  $("#figcaption-output").innerHTML=""; $("#previewImage").style.display="none";
+  renderBadges({});
 });
 
-/* Helpers */
-function flash(sel,msg,isErr=false){
-  const el=$(sel); const old=el.textContent;
-  el.textContent=msg; el.style.borderColor=isErr?"var(--err)":"var(--accent)";
-  setTimeout(()=>{ el.textContent=old; el.style.borderColor="#1f2937"; },1200);
-}
-function escapeHTML(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+/* ===== Helpers ===== */
+function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function escapeAttr(s){return String(s).replace(/"/g,"&quot;");}
 
-/* Core builder */
-function buildOutput(){
-  const data = readForm();
-  const fmt = $(".format-tabs button.active").dataset.format;
-  const out = formatAttribution(data, fmt);
-  setResult(out.text);
-  renderBadges(out.check);
-}
-
-/* Read form values */
+/* ===== Core: build all outputs ===== */
 function readForm(){
   return {
     title: $("#title").value.trim(),
@@ -307,126 +259,133 @@ function readForm(){
   };
 }
 
-/* Attribution templates */
-function formatAttribution(d, fmt="text"){
+function formatAttribution(d){
   const licDef = LICENSES.find(l=>l.id===d.licenseId) || LICENSES[0];
   const licUrl = licDef.url(d.licenseVersion)||"";
-  const licLabel = (
-    d.licenseId==="CC0" ? "CC0 1.0" :
-    d.licenseId==="PDM" ? "Public Domain Mark 1.0" :
-    licDef.id==="CUSTOM" ? "Benutzerdefinierte Lizenz" :
-    `${licDef.label} ${d.licenseVersion||""}`.trim()
-  );
+  const licLabel = (d.licenseId==="CC0") ? "CC0 1.0"
+    : (d.licenseId==="PDM") ? "Public Domain Mark 1.0"
+    : (licDef.id==="CUSTOM") ? "Benutzerdefinierte Lizenz"
+    : `${licDef.label} ${d.licenseVersion||""}`.trim();
 
   const isDE = d.lang==="de";
   const title = d.title || (isDE?"(ohne Titel)":"(untitled)");
 
-  // Creators display
+  // Creators views
   const creatorsText = d.creators.length
     ? d.creators.map(c=> c.url ? `${c.name} (${c.url})` : c.name).join(", ")
     : (isDE?"(Urheber:in unbekannt)":"(creator unknown)");
 
   const creatorsHTML = d.creators.length
-    ? d.creators.map(c=>{
-        const name = escapeHTML(c.name);
-        const url = (c.url||"").trim();
-        return url ? `<a href="${url}" target="_blank" rel="noopener">${name}</a>` : name;
-      }).join(", ")
+    ? d.creators.map(c=> c.url ? `<a href="${c.url}" target="_blank" rel="noopener">${escapeHTML(c.name)}</a>` : escapeHTML(c.name)).join(", ")
     : (isDE?"(Urheber:in unbekannt)":"(creator unknown)");
 
-  const creatorsMD = d.creators.length
-    ? d.creators.map(c=>{
-        const name = c.name;
-        const url = (c.url||"").trim();
-        return url ? `[${name}](${url})` : name;
-      }).join(", ")
-    : (isDE?"(Urheber:in unbekannt)":"(creator unknown)");
-
-  // TEXT
+  // Klartext
   const parts = [];
   parts.push(`„${title}“`);
-  parts.push(isDE ? `von ${creatorsText}` : `by ${creatorsText}`);
+  parts.push(isDE?`von ${creatorsText}`:`by ${creatorsText}`);
   if(d.year) parts.push(d.year);
-  if(licDef.id==="CUSTOM"){
-    parts.push(isDE ? `Lizenz: ${licLabel}` : `License: ${licLabel}`);
-  } else {
-    parts.push(isDE ? `lizenziert unter ${licLabel}` : `licensed under ${licLabel}`);
-  }
-  if(d.source) parts.push(isDE ? `Quelle: ${d.source}` : `Source: ${d.source}`);
-  if(d.workUrl) parts.push((isDE?`Link: `:`Link: `)+d.workUrl);
+  parts.push( licDef.id==="CUSTOM"
+    ? (isDE?`Lizenz: ${licLabel}`:`License: ${licLabel}`)
+    : (isDE?`lizenziert unter ${licLabel}`:`licensed under ${licLabel}`) );
+  if(d.source) parts.push(isDE?`Quelle: ${d.source}`:`Source: ${d.source}`);
+  if(d.workUrl) parts.push((isDE?"Link: ":"Link: ")+d.workUrl);
   if(d.isAdapted){
     const note = d.adaptationNote || (isDE?"Bearbeitung vorhanden":"Adaptation present");
-    parts.push(isDE ? `Änderungen: ${note}` : `Changes: ${note}`);
+    parts.push(isDE?`Änderungen: ${note}`:`Changes: ${note}`);
   }
   if(d.extra) parts.push(d.extra);
   const textOut = parts.join(" · ");
 
-  // HTML
-  const titleHTML = `„${escapeHTML(title)}”`;
-  const yearHTML = d.year?` · ${escapeHTML(d.year)}`:"";
+  // Figcaption HTML-String (kompletter Block)
   const licHTML = licDef.id==="CUSTOM"
-    ? (isDE?`Lizenz: ${escapeHTML(licLabel)}`:`License: ${escapeHTML(licLabel)}`)
-    : (isDE?`lizenziert unter <a href="${licUrl}" target="_blank" rel="license noopener">${escapeHTML(licLabel)}</a>`
-           :`licensed under <a href="${licUrl}" target="_blank" rel="license noopener">${escapeHTML(licLabel)}</a>`);
-  const sourceHTML = d.source? (isDE?` · Quelle: ${escapeHTML(d.source)}`:` · Source: ${escapeHTML(d.source)}`) : "";
-  const workHTML = d.workUrl?` · <a href="${d.workUrl}" target="_blank" rel="noopener">Link</a>`:"";
-  const changesHTML = d.isAdapted ? (isDE?` · Änderungen: ${escapeHTML(d.adaptationNote||"Bearbeitung vorhanden")}`
-                                  : ` · Changes: ${escapeHTML(d.adaptationNote||"Adaptation present")}`) : "";
-  const extraHTML = d.extra?` · ${escapeHTML(d.extra)}`:"";
-  const htmlOut = `<span property="cc:attributionName">${titleHTML}</span> ${isDE?"von":"by"} <span>${creatorsHTML}</span>${yearHTML} · ${licHTML}${sourceHTML}${workHTML}${changesHTML}${extraHTML}`;
+    ? escapeHTML(licLabel)
+    : `<a href="${licUrl}" target="_blank" rel="license noopener">${escapeHTML(licLabel)}</a>`;
 
-  // MARKDOWN
-  const licMD = licDef.id==="CUSTOM" ? (isDE?`Lizenz: ${licLabel}`:`License: ${licLabel}`) : `[${licLabel}](${licUrl})`;
-  const workMD = d.workUrl?` · [Link](${d.workUrl})`:"";
-  const sourceMD = d.source? (isDE?` · Quelle: ${d.source}`:` · Source: ${d.source}`) : "";
-  const changesMD = d.isAdapted ? (isDE?` · Änderungen: ${d.adaptationNote||"Bearbeitung vorhanden"}`
-                                      : ` · Changes: ${d.adaptationNote||"Adaptation present"}`) : "";
-  const extraMD = d.extra?` · ${d.extra}`:"";
-  const mdOut = `„${title}“ ${isDE?"von":"by"} ${creatorsMD}${d.year?` · ${d.year}`:""} · ${licMD}${sourceMD}${workMD}${changesMD}${extraMD}`;
+  const figcaptionInner = `
+    Titel: „${escapeHTML(d.title||"")}”<br>
+    Urheber:in: ${creatorsHTML}<br>
+    Lizenz: ${licHTML}<br>
+    Ursprungsort: ${ d.source ? escapeHTML(d.source) : "-" }<br>
+    Link: ${ d.workUrl ? `<a href="${d.workUrl}" target="_blank" rel="noopener">${escapeHTML(d.workUrl)}</a>` : "-" }<br>
+    ${ d.isAdapted ? `Änderungen: ${escapeHTML(d.adaptationNote||"Bearbeitung vorhanden")}<br>` : "" }
+    ${ d.extra ? `${escapeHTML(d.extra)}<br>` : "" }
+  `.trim().replace(/\n\s+/g,"");
 
-  const chosen = fmt==="html" ? htmlOut : fmt==="md" ? mdOut : textOut;
+  const figcaptionHTML = `<figcaption>${figcaptionInner}</figcaption>`;
 
-  // TULLU check badges
+  // JSON-LD
+  const jsonLD = (()=>{
+    const creators = d.creators.map(c=>({ "@type":"Person", "name":c.name, ...(c.url?{url:c.url}:{}) }));
+    const licURL = licDef.id==="CUSTOM" ? "" : (licDef.url(d.licenseVersion)||"");
+    const obj = {
+      "@context":"https://schema.org",
+      "@type":"ImageObject",
+      "name": d.title || "",
+      ...(d.workUrl?{"contentUrl": d.workUrl}:{ }),
+      ...(d.source?{"isBasedOn": d.source}:{ }),
+      ...(d.year?{"dateCreated": d.year}:{ }),
+      "creator": creators,
+      ...(licURL?{"license": licURL}:{ })
+    };
+    if(d.isAdapted) obj.creditText = `Adaptation: ${d.adaptationNote||"present"}`;
+    if(d.extra) obj.comment = d.extra;
+    return JSON.stringify(obj, null, 2);
+  })();
+
+  // TULLU checks
   const check = {
     T: !!d.title,
     U: d.creators.length>0,
     L: !!licLabel,
-    L2: licDef.id==="CUSTOM" ? true : !!licUrl, // Lizenz-Link (bei Custom nicht erzwungen)
-    U2: !!d.workUrl,  // Link zum Werk
-    U3: !!d.source,   // Ursprungsort benannt
+    L2: licDef.id==="CUSTOM" ? true : !!licUrl,
+    U2: !!d.workUrl,
+    U3: !!d.source,
     B:  d.isAdapted ? true : true
   };
 
-  return { text: chosen, check };
+  return { textOut, figcaptionHTML, figcaptionInner, jsonLD, check };
 }
 
-function setResult(s){ $("#result").value=s; }
-
 function renderBadges(check){
-  const el=$("#tulluBadges");
+  const el = $("#tulluBadges");
   el.innerHTML="";
-  const items = [
-    {k:"T", label:"Titel"},
-    {k:"U", label:"Urheber:in"},
-    {k:"L", label:"Lizenz"},
-    {k:"L2",label:"Lizenz-Link"},
-    {k:"U2",label:"Werk-Link"},
-    {k:"U3",label:"Ursprungsort"},
-    {k:"B", label:"+ B (Bearbeitung)"}
-  ];
-  items.forEach(it=>{
-    const ok = !!check[it.k];
-    const span=document.createElement("span");
-    span.className = "badge " + (ok?"ok":"warn");
-    span.textContent = it.label + (ok ? " ✓" : " •");
-    el.appendChild(span);
+  [
+    ["T","Titel"],["U","Urheber:in"],["L","Lizenz"],["L2","Lizenz-Link"],
+    ["U2","Werk-Link"],["U3","Ursprungsort"],["B","+ B (Bearbeitung)"]
+  ].forEach(([k,label])=>{
+    const ok = !!check[k];
+    const b = document.createElement("span");
+    b.className = "badge me-1 " + (ok?"text-bg-success":"text-bg-warning");
+    b.textContent = label + (ok?" ✓":" •");
+    el.appendChild(b);
   });
 }
 
-// Initial
-renderBadges({});
-// einmal triggern, damit evtl. Version deaktiviert wird, falls CC0/PDM gewählt wird
-$("#license").dispatchEvent(new Event("change"));
+function buildAll(){
+  const d = readForm();
+  const { textOut, figcaptionHTML, figcaptionInner, jsonLD, check } = formatAttribution(d);
+
+  // Klartext
+  $("#outText").value = textOut;
+
+  // Figcaption (Kopierfeld + Preview)
+  $("#outFigcaption").value = figcaptionHTML;
+  $("#figcaption-output").innerHTML = figcaptionInner;
+  if(d.workUrl){ $("#previewImage").src=d.workUrl; $("#previewImage").style.display="block"; }
+  else { $("#previewImage").style.display="none"; }
+
+  // JSON-LD
+  $("#outJsonLd").value = jsonLD;
+
+  renderBadges(check);
+}
+
+/* ===== Initial ===== */
+function init(){ 
+  document.getElementById("license").dispatchEvent(new Event("change"));
+  buildAll();
+}
+document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
